@@ -12,3 +12,61 @@ const mnemonic = '';
 const provider = new ethers.providers.WebSocketProvider('websocket url to mainnet here');
 const wallet = ethers.Wallet.fromMnemonic(mnemonic);
 const account = wallet.connect(provider);
+
+const factory = new ethers.Contract(
+    addresses.factory,
+    ['event PairCreated(address indexed token0, address indexed token1, address pair, uint)'],
+    account 
+);
+
+const router = new ethers.Contract(
+    addresses.router,
+    [
+        'function getAmountsOut(unit amountIn, address[] memory path) public views returns (unit[] memory amounts)',
+        'function swapExactTokensForTokens(unit amountIn, unit amountOutMin, address calldata path, address to, uint deadline)'
+        
+    ],
+    account
+);
+
+factory.on('PairCreated' , async (token0, token1, pairAddress) => {
+    console.log(`
+        New Pair Listed :
+        token0 : ${token0}
+        token1 : ${token1}
+        pairAddress : ${pairAddress}
+    `);
+
+    if(token0 === addresses.WBNB) {
+        tokenIn = token0;
+        tokenOut = token1;
+    } else if(token1 === addresses.WBNB){
+        tokenIn = token1;
+        tokenOut = token0;
+    } else {
+        return;
+    }
+
+    const amountIn = ethers.utils.parseUnits('0.1', 'ether');
+    const amounts = await router.getAmountsOut(amountIn, [tokenIn , tokenOut]);
+
+    count amountOutMin = amounts[1].sub(amounts[1].div(15));
+    console.log(`
+        Transaction :
+        tokenIn : ${amountIn.toString()} ${tokenIn} (WBNB)
+        tokenOut : ${amountOutMin.toString()} ${tokenOut}
+    `);
+
+    const tranction = await router.swapExactTokensForTokens(
+        amountIn,
+        amountOutMin,
+        [tokenIn , tokenOut],
+        addresses.recipient,
+        Date.now() + 1000 * 60 * 10
+    );
+
+    const receipt = await Text.wait();
+    console.log('Transaction receipt');
+    console.log(receipt);
+
+});
