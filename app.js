@@ -50,7 +50,7 @@ factory.on('PairCreated' , async (token0, token1, pairAddress) => {
     const amountIn = ethers.utils.parseUnits('0.1', 'ether');
     const amounts = await router.getAmountsOut(amountIn, [tokenIn , tokenOut]);
 
-    count amountOutMin = amounts[1].sub(amounts[1].div(15));
+    const amountOutMin = amounts[1].sub(amounts[1].div(15));
     console.log(`
         Transaction :
         tokenIn : ${amountIn.toString()} ${tokenIn} (WBNB)
